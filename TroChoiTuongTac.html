@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trò chơi tương tác - Bài 11 Thao tác với các lớp ảnh</title>
+  <style>
+    :root {
+      --bg1: #eef6ff;
+      --bg2: #f8fbff;
+      --card: #ffffff;
+      --ink: #16324f;
+      --accent: #2f80ed;
+      --accent2: #27ae60;
+      --accent3: #f2994a;
+      --danger: #eb5757;
+      --muted: #6b7b8f;
+      --shadow: 0 12px 32px rgba(34, 79, 138, 0.12);
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #dcefff 0, transparent 30%),
+        radial-gradient(circle at top right, #e7ffe9 0, transparent 28%),
+        linear-gradient(160deg, var(--bg1), var(--bg2));
+      min-height: 100vh;
+    }
+
+    .container {
+      width: min(1180px, calc(100% - 32px));
+      margin: 24px auto 48px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #1559c8, #36a2eb 58%, #56cc9d);
+      color: #fff;
+      border-radius: 30px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -80px;
+      top: -80px;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.15;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero p {
+      margin: 0;
+      font-size: 18px;
+      max-width: 760px;
+      line-height: 1.6;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .chip {
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      color: #fff;
+      padding: 9px 14px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.4fr 0.9fr;
+      gap: 22px;
+      margin-top: 24px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 16px;
+    }
+
+    .scorebox {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .metric {
+      background: linear-gradient(180deg, #f8fbff, #eef6ff);
+      border-radius: 18px;
+      padding: 14px;
+      text-align: center;
+      border: 1px solid #d7e7fb;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 28px;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .progress-wrap {
+      margin-top: 18px;
+    }
+
+    .progress-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .progress {
+      height: 14px;
+      border-radius: 999px;
+      background: #edf3fb;
+      overflow: hidden;
+      border: 1px solid #d9e8fb;
+    }
+
+    .bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #2f80ed, #56cc9d);
+      transition: width 0.35s ease;
+    }
+
+    .section {
+      margin-top: 20px;
+      border: 1px solid #e6eef9;
+      border-radius: 22px;
+      padding: 18px;
+      background: linear-gradient(180deg, #ffffff, #fbfdff);
+    }
+
+    .section h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      color: #13407a;
+    }
+
+    .section .tag {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #13407a;
+      background: #e7f0fe;
+    }
+
+    .section p.desc {
+      margin: 0 0 16px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .question {
+      padding: 16px;
+      background: #f8fbff;
+      border: 1px solid #dce9fb;
+      border-radius: 18px;
+      margin-bottom: 14px;
+    }
+
+    .question h3 {
+      margin: 0 0 14px;
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option {
+      border: 2px solid #d8e6fb;
+      padding: 12px 14px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: 0.2s ease;
+      font-weight: 600;
+      background: #fff;
+    }
+
+    .option:hover {
+      transform: translateY(-1px);
+      border-color: #95bdf7;
+    }
+
+    .option.correct {
+      background: #eafaf0;
+      border-color: #7dd89a;
+      color: #186a3b;
+    }
+
+    .option.wrong {
+      background: #fff0f0;
+      border-color: #f1a3a3;
+      color: #9c2f2f;
+    }
+
+    .option.disabled {
+      pointer-events: none;
+    }
+
+    .feedback {
+      margin-top: 12px;
+      font-weight: 700;
+      min-height: 22px;
+    }
+
+    .match-grid {
+      display: grid;
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: 16px;
+    }
+
+    .terms,
+    .defs {
+      display: grid;
+      gap: 12px;
+    }
+
+    .term {
+      background: linear-gradient(180deg, #f4f9ff, #edf5ff);
+      border: 2px solid #cfe2fb;
+      border-radius: 16px;
+      padding: 14px;
+      cursor: grab;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .term.used {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .dropzone {
+      background: #fff;
+      border: 2px dashed #b6cff3;
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 88px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .dropzone strong {
+      color: #11407a;
+    }
+
+    .dropzone.ok {
+      border-color: #7dd89a;
+      background: #f0fbf3;
+    }
+
+    .dropzone.bad {
+      border-color: #f1a3a3;
+      background: #fff4f4;
+    }
+
+    .dropped {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #e7f0fe;
+      color: #13407a;
+      font-weight: 700;
+      align-self: flex-start;
+    }
+
+    .sequence-board {
+      display: grid;
+      gap: 14px;
+    }
+
+    .step-bank,
+    .answer-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      min-height: 64px;
+      padding: 14px;
+      border-radius: 18px;
+      border: 2px dashed #c2d7f7;
+      background: #f8fbff;
+    }
+
+    .step-card {
+      background: #fff;
+      border: 2px solid #d6e5fb;
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      max-width: 320px;
+    }
+
+    .step-card:hover {
+      border-color: #8ab7f6;
+    }
+
+    .step-card.selected {
+      background: #eef6ff;
+    }
+
+    .answer-item {
+      background: linear-gradient(180deg, #ffffff, #eef7ff);
+      border: 2px solid #9fc2f7;
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-weight: 700;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .answer-item .num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      background: #2f80ed;
+      color: #fff;
+      font-size: 14px;
+      flex: 0 0 auto;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 18px;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button.primary {
+      background: linear-gradient(90deg, #2f80ed, #27ae60);
+      color: #fff;
+    }
+
+    button.ghost {
+      background: #eef6ff;
+      color: #13407a;
+    }
+
+    button.warn {
+      background: #fff4e8;
+      color: #b45d00;
+    }
+
+    .result {
+      margin-top: 16px;
+      padding: 18px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #f8fbff, #eff7ff);
+      border: 1px solid #dbe9fb;
+      display: none;
+    }
+
+    .result.show {
+      display: block;
+    }
+
+    .result h3 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .result p {
+      margin: 0 0 8px;
+      line-height: 1.6;
+    }
+
+    .mini-note {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--muted);
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 16px;
+      background: #f8fbff;
+      border: 1px solid #dbe9fb;
+    }
+
+    .footer-note {
+      margin-top: 20px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .confetti {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .piece {
+      position: absolute;
+      width: 10px;
+      height: 16px;
+      opacity: 0.9;
+      animation: fall linear forwards;
+    }
+
+    @keyframes fall {
+      from {
+        transform: translateY(-10vh) rotate(0deg);
+      }
+
+      to {
+        transform: translateY(110vh) rotate(720deg);
+      }
+    }
+
+    @media (max-width: 940px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+      }
+
+      .match-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        width: min(100% - 18px, 1000px);
+      }
+
+      .hero {
+        padding: 22px;
+      }
+
+      .panel {
+        padding: 16px;
+      }
+
+      .scorebox {
+        grid-template-columns: 1fr;
+      }
+
+      .question h3 {
+        font-size: 17px;
+      }
+
+      .step-card,
+      .answer-item {
+        max-width: 100%;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="confetti" id="confetti"></div>
+  <div class="container">
+    <section class="hero">
+      <h1>Trò chơi tương tác củng cố kiến thức - Bài 11: Thao tác với các lớp ảnh</h1>
+      <p>
+        Hãy cùng chinh phục 3 thử thách để ôn lại kiến thức về lớp ảnh, mặt nạ lớp và quy trình xoá nền ảnh.
+        Mỗi thử thách hoàn thành tốt sẽ giúp em tích luỹ điểm và mở khoá danh hiệu cuối trò chơi.
+      </p>
+    </section>
+
+    <div class="layout">
+      <main>
+        <section class="panel section" id="quiz-section">
+          <span class="tag">Thử thách 1</span>
+          <h2>Chớp nhoáng kiến thức</h2>
+          <p class="desc">Chọn đáp án đúng cho mỗi câu hỏi. Mỗi câu đúng được 10 điểm.</p>
+          <div id="quiz-list"></div>
+        </section>
+
+        <section class="panel section" id="match-section">
+          <span class="tag">Thử thách 2</span>
+          <h2>Ghép cặp thông minh</h2>
+          <p class="desc">
+            Kéo thả khái niệm ở cột trái vào đúng ô định nghĩa ở cột phải. Mỗi cặp đúng được 5 điểm.
+          </p>
+          <div class="match-grid">
+            <div>
+              <h3>Khái niệm</h3>
+              <div class="terms" id="terms"></div>
+            </div>
+            <div>
+              <h3>Định nghĩa</h3>
+              <div class="defs" id="defs"></div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="ghost" id="check-match">Kiểm tra ghép cặp</button>
+            <button class="warn" id="reset-match">Làm lại phần ghép cặp</button>
+          </div>
+          <div class="feedback" id="match-feedback"></div>
+        </section>
+
+        <section class="panel section" id="sequence-section">
+          <span class="tag">Thử thách 3</span>
+          <h2>Sắp xếp quy trình xoá nền ảnh</h2>
+          <p class="desc">
+            Nhấn vào các bước ở ngân hàng phía dưới theo đúng thứ tự thực hiện. Muốn bỏ một bước đã chọn, em chỉ cần
+            nhấn lại vào bước đó trên hàng đáp án.
+          </p>
+          <div class="sequence-board">
+            <div>
+              <h3>Thứ tự em chọn</h3>
+              <div class="answer-line" id="answer-line"></div>
+            </div>
+            <div>
+              <h3>Ngân hàng bước</h3>
+              <div class="step-bank" id="step-bank"></div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="ghost" id="check-sequence">Kiểm tra thứ tự</button>
+            <button class="warn" id="reset-sequence">Xoá thứ tự đã chọn</button>
+          </div>
+          <div class="feedback" id="sequence-feedback"></div>
+        </section>
+      </main>
+
+      <aside class="panel sidebar">
+        <h2 style="margin-top:0; color:#13407a;">Bảng theo dõi trò chơi</h2>
+        <p style="line-height:1.6; color:#6b7b8f; margin-top:0;">
+          Sau khi hoàn thành 3 thử thách, em sẽ biết ngay mức độ nắm bài của mình.
+        </p>
+
+        <div class="scorebox">
+          <div class="metric"><strong id="score">0</strong>Tổng điểm</div>
+          <div class="metric"><strong id="correct-count">0</strong>Câu/cặp đúng</div>
+          <div class="metric"><strong id="progress-text">0%</strong>Tiến độ</div>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-head"><span>Tiến độ hoàn thành</span><span id="done-count">0/15</span></div>
+          <div class="progress">
+            <div class="bar" id="bar"></div>
+          </div>
+        </div>
+
+        <div class="mini-note">
+          <strong>Kiến thức cần nhớ:</strong><br>
+          - Lớp ảnh là các thành phần riêng biệt có thể chỉnh sửa độc lập.<br>
+          - Mặt nạ lớp chỉ tác động lên lớp được gắn mặt nạ.<br>
+          - Trên mặt nạ: màu trắng hiện, màu đen ẩn, màu xám hiện một phần.<br>
+          - Khi xuất ảnh nền trong suốt, nên chọn định dạng <strong>PNG</strong>.
+        </div>
+
+        <div class="btn-row">
+          <button class="primary" id="show-result">Xem kết quả cuối cùng</button>
+          <button class="ghost" id="restart-all">Chơi lại từ đầu</button>
+        </div>
+
+        <div class="result" id="result-box">
+          <h3 id="rank-title">Sẵn sàng chưa?</h3>
+          <p id="rank-desc">Hoàn thành trò chơi để xem mức độ chinh phục bài học.</p>
+          <p id="rank-tip"></p>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const quizData = [
+      {
+        q: "1. Lớp ảnh được hiểu đúng nhất là gì?",
+        options: [
+          "Một tệp ảnh chỉ có thể chỉnh sửa toàn bộ cùng lúc",
+          "Những thành phần riêng biệt được xếp chồng và có thể chỉnh sửa độc lập",
+          "Một hiệu ứng tự động làm ảnh chuyển động",
+          "Một công cụ chỉ dùng để tô màu cho ảnh"
+        ],
+        answer: 1,
+        explain: "Đúng rồi. Lớp ảnh giống như các tấm trong suốt xếp chồng lên nhau và có thể chỉnh sửa độc lập."
+      },
+      {
+        q: "2. Mặt nạ lớp được tạo cho vùng nào?",
+        options: [
+          "Cho toàn bộ tệp ảnh và tác động đồng thời lên mọi lớp",
+          "Chỉ cho lớp đang được gắn mặt nạ và ảnh hưởng đến vùng hiển thị của lớp đó",
+          "Chỉ cho nền của bức ảnh",
+          "Chỉ tạo được cho chữ, không tạo cho ảnh"
+        ],
+        answer: 1,
+        explain: "Chính xác. Mặt nạ lớp chỉ kiểm soát việc hiện hoặc ẩn trên lớp được gắn mặt nạ."
+      },
+      {
+        q: "3. Trên mặt nạ lớp, màu đen có vai trò gì?",
+        options: [
+          "Hiển thị hoàn toàn nội dung lớp",
+          "Ẩn hoàn toàn vùng tương ứng của lớp",
+          "Làm ảnh sáng hơn",
+          "Khoá lớp không cho chỉnh sửa"
+        ],
+        answer: 1,
+        explain: "Đúng. Màu đen trên mặt nạ làm ẩn vùng tương ứng của lớp."
+      },
+      {
+        q: "4. Muốn xoá nền ảnh mà vẫn có thể khôi phục lại, em nên dùng cách nào?",
+        options: [
+          "Dùng Layer Mask kết hợp Paintbrush",
+          "Xoá trực tiếp bằng phím Delete trên ảnh gốc",
+          "Đổi tên lớp ảnh",
+          "Tăng kích thước bút vẽ"
+        ],
+        answer: 0,
+        explain: "Tuyệt vời. Layer Mask giúp xoá nền theo cách không phá huỷ dữ liệu gốc."
+      },
+      {
+        q: "5. Sau khi xoá nền xong và muốn giữ nền trong suốt, em nên xuất ảnh ở định dạng nào?",
+        options: [
+          "JPG",
+          "BMP",
+          "PNG",
+          "TXT"
+        ],
+        answer: 2,
+        explain: "Chính xác. PNG hỗ trợ nền trong suốt nên phù hợp sau khi xoá nền ảnh."
+      }
+    ];
+
+    const matchData = [
+      { term: "Lớp ảnh", def: "Thành phần riêng biệt của ảnh, có thể chỉnh sửa độc lập." },
+      { term: "Mặt nạ lớp", def: "Công cụ điều khiển vùng hiện hoặc ẩn của một lớp ảnh." },
+      { term: "Màu trắng", def: "Vùng trên mặt nạ cho nội dung của lớp hiện hoàn toàn." },
+      { term: "Màu đen", def: "Vùng trên mặt nạ làm nội dung của lớp bị ẩn đi." },
+      { term: "Màu xám", def: "Vùng trên mặt nạ cho nội dung lớp hiện một phần hoặc mờ." }
+    ];
+
+    const correctSequence = [
+      "Mở tệp ảnh bằng lệnh File -> Open as Layers.",
+      "Tạo Layer Mask và chọn White (full opacity).",
+      "Chọn công cụ Paintbrush và chỉnh kích thước brush.",
+      "Tô lên phần nền cần xoá để ẩn vùng đó trên lớp.",
+      "Xuất ảnh và chọn định dạng PNG."
+    ];
+
+    const quizList = document.getElementById("quiz-list");
+    const termsBox = document.getElementById("terms");
+    const defsBox = document.getElementById("defs");
+    const answerLine = document.getElementById("answer-line");
+    const stepBank = document.getElementById("step-bank");
+    const scoreEl = document.getElementById("score");
+    const correctCountEl = document.getElementById("correct-count");
+    const progressTextEl = document.getElementById("progress-text");
+    const doneCountEl = document.getElementById("done-count");
+    const barEl = document.getElementById("bar");
+    const resultBox = document.getElementById("result-box");
+    const rankTitle = document.getElementById("rank-title");
+    const rankDesc = document.getElementById("rank-desc");
+    const rankTip = document.getElementById("rank-tip");
+    const confettiEl = document.getElementById("confetti");
+
+    let totalScore = 0;
+    let correctCount = 0;
+    let doneCount = 0;
+    let quizState = Array(quizData.length).fill(false);
+    let matchedCorrect = 0;
+    let sequenceDone = false;
+    let activeTerm = null;
+    let sequenceChosen = [];
+
+    function shuffle(arr) {
+      return [...arr].sort(() => Math.random() - 0.5);
+    }
+
+    function updateBoard() {
+      const totalTasks = 15;
+      const percent = Math.round((doneCount / totalTasks) * 100);
+      scoreEl.textContent = totalScore;
+      correctCountEl.textContent = correctCount;
+      progressTextEl.textContent = percent + "%";
+      doneCountEl.textContent = doneCount + "/" + totalTasks;
+      barEl.style.width = percent + "%";
+    }
+
+    function award(points, count) {
+      totalScore += points;
+      correctCount += count;
+      doneCount += count;
+      updateBoard();
+    }
+
+    function buildQuiz() {
+      quizList.innerHTML = "";
+      quizData.forEach((item, index) => {
+        const box = document.createElement("div");
+        box.className = "question";
+        const title = document.createElement("h3");
+        title.textContent = item.q;
+        const options = document.createElement("div");
+        options.className = "options";
+        const feedback = document.createElement("div");
+        feedback.className = "feedback";
+
+        item.options.forEach((opt, optIndex) => {
+          const btn = document.createElement("div");
+          btn.className = "option";
+          btn.textContent = opt;
+          btn.addEventListener("click", () => {
+            if (quizState[index]) return;
+            quizState[index] = true;
+            const optionNodes = options.querySelectorAll(".option");
+            optionNodes.forEach((node, idx) => {
+              node.classList.add("disabled");
+              if (idx === item.answer) node.classList.add("correct");
+            });
+            if (optIndex === item.answer) {
+              btn.classList.add("correct");
+              feedback.textContent = item.explain;
+              feedback.style.color = "#186a3b";
+              award(10, 1);
+            } else {
+              btn.classList.add("wrong");
+              feedback.textContent = "Chưa đúng. " + item.explain;
+              feedback.style.color = "#9c2f2f";
+              doneCount += 1;
+              updateBoard();
+            }
+          });
+          options.appendChild(btn);
+        });
+
+        box.appendChild(title);
+        box.appendChild(options);
+        box.appendChild(feedback);
+        quizList.appendChild(box);
+      });
+    }
+
+    function buildMatch() {
+      termsBox.innerHTML = "";
+      defsBox.innerHTML = "";
+      activeTerm = null;
+      matchedCorrect = 0;
+
+      shuffle(matchData).forEach((item) => {
+        const term = document.createElement("div");
+        term.className = "term";
+        term.textContent = item.term;
+        term.draggable = true;
+        term.dataset.term = item.term;
+
+        term.addEventListener("click", () => {
+          if (term.classList.contains("used")) return;
+          document.querySelectorAll(".term").forEach((t) => t.style.outline = "none");
+          activeTerm = term.dataset.term;
+          term.style.outline = "3px solid #7fb2f9";
+        });
+
+        term.addEventListener("dragstart", (e) => {
+          if (term.classList.contains("used")) return e.preventDefault();
+          e.dataTransfer.setData("text/plain", item.term);
+        });
+        termsBox.appendChild(term);
+      });
+
+      shuffle(matchData).forEach((item) => {
+        const zone = document.createElement("div");
+        zone.className = "dropzone";
+        zone.dataset.answer = item.term;
+        zone.innerHTML = `<strong>${item.def}</strong><span style="color:#7a8ca2; font-size:14px;">Kéo thả khái niệm đúng vào đây hoặc chạm để đặt khái niệm đã chọn.</span>`;
+
+        zone.addEventListener("dragover", (e) => e.preventDefault());
+        zone.addEventListener("drop", (e) => {
+          e.preventDefault();
+          const term = e.dataTransfer.getData("text/plain");
+          placeTerm(zone, term);
+        });
+        zone.addEventListener("click", () => {
+          if (activeTerm) placeTerm(zone, activeTerm);
+        });
+        defsBox.appendChild(zone);
+      });
+    }
+
+    function placeTerm(zone, termName) {
+      if (zone.querySelector(".dropped")) return;
+      const termNode = [...document.querySelectorAll(".term")].find((t) => t.dataset.term === termName);
+      if (!termNode || termNode.classList.contains("used")) return;
+      termNode.classList.add("used");
+      termNode.style.outline = "none";
+      activeTerm = null;
+      const badge = document.createElement("span");
+      badge.className = "dropped";
+      badge.textContent = termName;
+      zone.appendChild(badge);
+      zone.dataset.chosen = termName;
+    }
+
+    function checkMatch() {
+      let localCorrect = 0;
+      let counted = 0;
+      document.querySelectorAll(".dropzone").forEach((zone) => {
+        zone.classList.remove("ok", "bad");
+        if (zone.dataset.checked === "1") return;
+        const chosen = zone.dataset.chosen;
+        if (!chosen) return;
+        counted += 1;
+        zone.dataset.checked = "1";
+        if (chosen === zone.dataset.answer) {
+          zone.classList.add("ok");
+          localCorrect += 1;
+        } else {
+          zone.classList.add("bad");
+        }
+      });
+      matchedCorrect += localCorrect;
+      award(localCorrect * 5, localCorrect);
+      doneCount += (counted - localCorrect);
+      updateBoard();
+      const fb = document.getElementById("match-feedback");
+      if (counted === 0) {
+        fb.textContent = "Em hãy ghép ít nhất một cặp trước khi kiểm tra.";
+        fb.style.color = "#9c6500";
+        return;
+      }
+      fb.textContent = `Phần ghép cặp: đúng ${localCorrect}/${counted} cặp vừa kiểm tra.`;
+      fb.style.color = localCorrect === counted ? "#186a3b" : "#9c2f2f";
+    }
+
+    function resetMatch() {
+      document.getElementById("match-feedback").textContent = "";
+      buildMatch();
+    }
+
+    function buildSequence() {
+      answerLine.innerHTML = "";
+      stepBank.innerHTML = "";
+      sequenceChosen = [];
+      sequenceDone = false;
+      shuffle(correctSequence).forEach((step) => {
+        const card = document.createElement("div");
+        card.className = "step-card";
+        card.textContent = step;
+        card.dataset.step = step;
+        card.addEventListener("click", () => {
+          if (sequenceChosen.includes(step)) return;
+          sequenceChosen.push(step);
+          renderSequence();
+        });
+        stepBank.appendChild(card);
+      });
+    }
+
+    function renderSequence() {
+      answerLine.innerHTML = "";
+      sequenceChosen.forEach((step, idx) => {
+        const item = document.createElement("div");
+        item.className = "answer-item";
+        item.innerHTML = `<span class="num">${idx + 1}</span><span>${step}</span>`;
+        item.addEventListener("click", () => {
+          sequenceChosen = sequenceChosen.filter((s) => s !== step);
+          renderSequence();
+        });
+        answerLine.appendChild(item);
+      });
+      document.querySelectorAll("#step-bank .step-card").forEach((card) => {
+        card.classList.toggle("selected", sequenceChosen.includes(card.dataset.step));
+      });
+    }
+
+    function checkSequence() {
+      const fb = document.getElementById("sequence-feedback");
+      if (sequenceDone) {
+        fb.textContent = "Phần sắp xếp này đã được chấm rồi. Em có thể chơi lại toàn bộ để làm lại từ đầu.";
+        fb.style.color = "#9c6500";
+        return;
+      }
+      if (sequenceChosen.length !== correctSequence.length) {
+        fb.textContent = "Em cần chọn đủ 5 bước trước khi kiểm tra.";
+        fb.style.color = "#9c6500";
+        return;
+      }
+      sequenceDone = true;
+      let rightSteps = 0;
+      sequenceChosen.forEach((step, idx) => {
+        if (step === correctSequence[idx]) rightSteps += 1;
+      });
+      award(rightSteps * 5, rightSteps);
+      doneCount += (correctSequence.length - rightSteps);
+      updateBoard();
+      if (rightSteps === correctSequence.length) {
+        fb.textContent = "Xuất sắc. Em đã sắp xếp đúng toàn bộ quy trình xoá nền ảnh.";
+        fb.style.color = "#186a3b";
+      } else {
+        fb.textContent = `Em đúng ${rightSteps}/5 bước. Hãy quan sát lại quy trình: mở ảnh -> tạo mặt nạ -> chọn Paintbrush -> tô nền cần xoá -> xuất PNG.`;
+        fb.style.color = "#9c2f2f";
+      }
+    }
+
+    function showResult() {
+      resultBox.classList.add("show");
+      let title = "Cần cố gắng thêm";
+      let desc = "Em đã nắm được một phần kiến thức, nhưng nên xem lại vai trò của mặt nạ lớp và thứ tự thao tác xoá nền ảnh.";
+      let tip = "Gợi ý ôn tập: nhớ quy tắc trắng hiện - đen ẩn - xám hiện một phần.";
+      if (totalScore >= 85) {
+        title = "Nhà thiết kế lớp ảnh";
+        desc = "Tuyệt vời. Em đã nắm chắc kiến thức trọng tâm của bài 11 và có thể vận dụng để xử lí ảnh bằng lớp ảnh, mặt nạ lớp.";
+        tip = "Em có thể thử thực hành thêm với một bức ảnh thật để củng cố kỹ năng.";
+        launchConfetti();
+      } else if (totalScore >= 65) {
+        title = "Chinh phục khá tốt";
+        desc = "Em đã hiểu phần lớn nội dung bài học. Chỉ cần luyện thêm một chút về quy trình thao tác và ý nghĩa các màu trên mặt nạ.";
+        tip = "Hãy luyện lại bước tạo Layer Mask và xuất ảnh PNG để nhớ lâu hơn.";
+      }
+      rankTitle.textContent = title;
+      rankDesc.textContent = `Điểm của em: ${totalScore}/100. ${desc}`;
+      rankTip.textContent = tip;
+    }
+
+    function launchConfetti() {
+      confettiEl.innerHTML = "";
+      const colors = ["#2f80ed", "#27ae60", "#f2994a", "#eb5757", "#9b51e0"];
+      for (let i = 0; i < 40; i++) {
+        const piece = document.createElement("div");
+        piece.className = "piece";
+        piece.style.left = Math.random() * 100 + "%";
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDuration = (3 + Math.random() * 2) + "s";
+        piece.style.animationDelay = (Math.random() * 0.6) + "s";
+        confettiEl.appendChild(piece);
+      }
+      setTimeout(() => { confettiEl.innerHTML = ""; }, 6000);
+    }
+
+    function restartAll() {
+      totalScore = 0;
+      correctCount = 0;
+      doneCount = 0;
+      quizState = Array(quizData.length).fill(false);
+      matchedCorrect = 0;
+      sequenceDone = false;
+      resultBox.classList.remove("show");
+      rankTitle.textContent = "Sẵn sàng chưa?";
+      rankDesc.textContent = "Hoàn thành trò chơi để xem mức độ chinh phục bài học.";
+      rankTip.textContent = "";
+      document.getElementById("match-feedback").textContent = "";
+      document.getElementById("sequence-feedback").textContent = "";
+      buildQuiz();
+      buildMatch();
+      buildSequence();
+      updateBoard();
+      confettiEl.innerHTML = "";
+    }
+
+    document.getElementById("check-match").addEventListener("click", checkMatch);
+    document.getElementById("reset-match").addEventListener("click", resetMatch);
+    document.getElementById("check-sequence").addEventListener("click", checkSequence);
+    document.getElementById("reset-sequence").addEventListener("click", buildSequence);
+    document.getElementById("show-result").addEventListener("click", showResult);
+    document.getElementById("restart-all").addEventListener("click", restartAll);
+
+    buildQuiz();
+    buildMatch();
+    buildSequence();
+    updateBoard();
+  </script>
+</body>
+
+</html>
